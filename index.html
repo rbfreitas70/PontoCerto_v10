@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#228B22">
+    <meta name="theme-color" content="#3b82f6">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="PontoCerto">
     <meta name="description" content="PontoCerto - Controle de jornada de trabalho inteligente">
-    <link rel="manifest" href="/manifest.json">
-    <link rel="icon" type="image/png" href="/icons/icon-192x192.png">
-    <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="icons/icon-192x192.png">
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
     <title>PontoCerto</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -458,13 +458,20 @@
                     const pair = { s, e, dur, cat };
                     allPairs.push(pair);
                     
-                    // Cálculo de adicional noturno (22:00 às 05:00)
-                    let current = new Date(s);
-                    while (current < e) {
-                        const h = current.getHours();
-                        if (h >= 22 || h < 5) nightMin += 1;
-                        current.setMinutes(current.getMinutes() + 1);
-                    }
+                    // Cálculo de adicional noturno (22:00 às 05:00) — sem loop, por segmentos
+                    const countNightMins = (startDt, endDt) => {
+                        let n = 0;
+                        // Divide o intervalo em blocos de 1h para eficiência (máx ~24 iterações)
+                        let cur = new Date(startDt);
+                        while (cur < endDt) {
+                            const next = new Date(Math.min(cur.getTime() + 3600000, endDt.getTime()));
+                            const h = cur.getHours();
+                            if (h >= 22 || h < 5) n += (next - cur) / 60000;
+                            cur = next;
+                        }
+                        return n;
+                    };
+                    nightMin += countNightMins(s, e);
 
                     if (cat === 'banco') {
                         bankMin += dur;
@@ -576,7 +583,7 @@
             const today = new Date();
             return Array.from({ length: 12 }, (_, m) => {
                 const ms = new Date(calYear, m, 1); const me = new Date(calYear, m + 1, 0); const cells = [];
-                for (let i = 0; i < ms.getDay(); i++) cells.push(null);
+                for (let i = 0; i < ((ms.getDay() + 6) % 7); i++) cells.push(null);
                 for (let d = 1; d <= me.getDate(); d++) {
                     const dt = new Date(calYear, m, d); const ds = calcDay(dt);
                     cells.push({ d, dt, ds, isToday: dt.toDateString() === today.toDateString() });
@@ -1032,7 +1039,7 @@
     // Registrar Service Worker para PWA
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/service-worker.js')
+            navigator.serviceWorker.register('sw.js')
                 .then(registration => {
                     console.log('Service Worker registrado com sucesso:', registration);
                 })
