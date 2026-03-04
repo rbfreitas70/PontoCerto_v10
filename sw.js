@@ -1,13 +1,12 @@
 const CACHE_NAME = 'pontocerto-cache-v2';
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/icons/icon-48x48.png',
-  '/icons/icon-72x72.png',
-  '/icons/icon-96x96.png',
-  '/icons/icon-192x192.png',
-  '/icons/icon-512x512.png'
+  './index.html',
+  './manifest.json',
+  './icons/icon-48x48.png',
+  './icons/icon-72x72.png',
+  './icons/icon-96x96.png',
+  './icons/icon-192x192.png',
+  './icons/icon-512x512.png'
 ];
 
 self.addEventListener('install', event => {
